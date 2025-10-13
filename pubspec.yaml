@@ -16,6 +16,8 @@ dependencies:
   firebase_core: ^2.13.0
   firebase_auth: ^4.6.0
   cloud_firestore: ^4.7.0
+  pdf: ^3.10.4
+  share_plus: ^7.0.2
 
 dev_dependencies:
   flutter_test:
