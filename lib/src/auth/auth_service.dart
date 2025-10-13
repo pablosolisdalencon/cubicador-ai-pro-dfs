@@ -13,9 +13,8 @@ class AuthService {
         email: email,
         password: password,
       );
-    } on FirebaseAuthException catch (e) {
-      // Manejar errores, por ejemplo, usuario no encontrado o contraseña incorrecta
-      print(e.message);
+    } on FirebaseAuthException {
+      // Devolver null en caso de error para que la UI lo maneje
       return null;
     }
   }
@@ -27,9 +26,8 @@ class AuthService {
         email: email,
         password: password,
       );
-    } on FirebaseAuthException catch (e) {
-      // Manejar errores, por ejemplo, el email ya está en uso
-      print(e.message);
+    } on FirebaseAuthException {
+      // Devolver null en caso de error
       return null;
     }
   }

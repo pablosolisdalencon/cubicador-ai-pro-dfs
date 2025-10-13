@@ -1,6 +1,7 @@
 import 'package:cubicador_pro/src/auth/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:cubicador_pro/src/projects/project_list_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -30,19 +31,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
         );
       } else {
-        // Mostrar un error
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error: No se pudo crear el usuario.')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppLocalizations.of(context)!.signupError)),
+          );
+        }
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Registrarse'),
+        title: Text(l10n.register),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -52,33 +55,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
             children: [
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, ingrese un email';
-                  }
-                  return null;
-                },
+                decoration: InputDecoration(labelText: l10n.email),
+                validator: (value) => value!.isEmpty ? l10n.fieldRequired : null,
               ),
               TextFormField(
                 controller: _passwordController,
-                decoration: const InputDecoration(
-                  labelText: 'Contraseña',
-                ),
+                decoration: InputDecoration(labelText: l10n.password),
                 obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, ingrese una contraseña';
-                  }
-                  return null;
-                },
+                validator: (value) => value!.isEmpty ? l10n.fieldRequired : null,
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _signUp,
-                child: const Text('Registrarse'),
+                child: Text(l10n.register),
               ),
             ],
           ),

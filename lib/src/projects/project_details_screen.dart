@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cubicador_pro/src/cubication/cubication_form_screen.dart';
 import 'package:cubicador_pro/src/models/cubication_item_model.dart';
+import 'package:cubicador_pro/src/models/project_model.dart';
+import 'package:cubicador_pro/src/projects/edit_project_screen.dart';
 import 'package:cubicador_pro/src/projects/project_service.dart';
+import 'package:cubicador_pro/src/reports/report_screen.dart';
 import 'package:flutter/material.dart';
 
 class ProjectDetailsScreen extends StatelessWidget {
@@ -21,6 +24,47 @@ class ProjectDetailsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(projectName),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            tooltip: 'Editar Proyecto',
+            onPressed: () {
+              // Necesitamos el objeto Project completo para editarlo
+              // Lo ideal sería obtenerlo de Firestore o pasarlo desde la pantalla anterior
+              // Por simplicidad, crearemos uno aquí (en una app real esto sería diferente)
+              projectService.getProjects().first.then((snapshot) {
+                final projectDoc = snapshot.docs.firstWhere((doc) => doc.id == projectId);
+                final project = projectDoc.data();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditProjectScreen(project: project),
+                  ),
+                );
+              });
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.assessment),
+            tooltip: 'Generar Reporte',
+            onPressed: () {
+              projectService.getProjectItems(projectId).first.then((snapshot) {
+                final items = snapshot.docs.map((doc) => doc.data()).toList();
+                if (context.mounted) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ReportScreen(
+                        projectName: projectName,
+                        items: items,
+                      ),
+                    ),
+                  );
+                }
+              });
+            },
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot<CubicationItem>>(
         stream: projectService.getProjectItems(projectId),
@@ -59,7 +103,6 @@ class ProjectDetailsScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Iniciar una nueva cubicación para este proyecto
           Navigator.push(
             context,
             MaterialPageRoute(

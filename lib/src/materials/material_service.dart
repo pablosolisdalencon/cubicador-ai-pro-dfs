@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cubicador_pro/src/models/material_model.dart';
+import 'package:cubicador_pro/src/models/construction_material_model.dart';
 
 class MaterialService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Obtener la colección de materiales para el usuario actual
-  CollectionReference<Material> _getMaterialsCollection() {
+  CollectionReference<ConstructionMaterial> _getMaterialsCollection() {
     final User? user = _auth.currentUser;
     if (user == null) {
       throw Exception('Usuario no autenticado.');
@@ -16,20 +16,25 @@ class MaterialService {
         .collection('users')
         .doc(user.uid)
         .collection('materials')
-        .withConverter<Material>(
-          fromFirestore: (snapshots, _) => Material.fromFirestore(snapshots.data()!, snapshots.id),
+        .withConverter<ConstructionMaterial>(
+          fromFirestore: (snapshots, _) => ConstructionMaterial.fromFirestore(snapshots.data()!, snapshots.id),
           toFirestore: (material, _) => material.toFirestore(),
         );
   }
 
   // Stream para obtener los materiales en tiempo real
-  Stream<QuerySnapshot<Material>> getMaterials() {
+  Stream<QuerySnapshot<ConstructionMaterial>> getMaterials() {
     return _getMaterialsCollection().snapshots();
   }
 
   // Añadir un nuevo material
-  Future<void> addMaterial(Material material) {
+  Future<void> addMaterial(ConstructionMaterial material) {
     return _getMaterialsCollection().add(material);
+  }
+
+  // Actualizar un material existente
+  Future<void> updateMaterial(String materialId, ConstructionMaterial material) {
+    return _getMaterialsCollection().doc(materialId).update(material.toFirestore());
   }
 
   // Eliminar un material

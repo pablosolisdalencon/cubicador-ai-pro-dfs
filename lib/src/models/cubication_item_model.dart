@@ -5,7 +5,7 @@ class CubicationItem {
   final String workType;
   final String materialName;
   final String materialUnit;
-  final double materialPrice; // Precio al momento de la cubicación
+  final double materialPrice;
   final double largo;
   final double ancho;
   final double alto;

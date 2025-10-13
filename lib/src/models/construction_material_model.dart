@@ -1,9 +1,9 @@
 class ConstructionMaterial {
   final String id;
   final String name;
-  final String unit; // Por ejemplo: m³, m², kg, pza
-  final double price; // Precio por unidad
-  final double performance; // Rendimiento (opcional, para cálculos futuros)
+  final String unit;
+  final double price;
+  final double performance;
 
   ConstructionMaterial({
     required this.id,

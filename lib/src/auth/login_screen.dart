@@ -2,6 +2,7 @@ import 'package:cubicador_pro/src/auth/auth_service.dart';
 import 'package:cubicador_pro/src/auth/signup_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cubicador_pro/src/projects/project_list_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -31,19 +32,22 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       } else {
-        // Mostrar un error
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error: Usuario o contraseña incorrectos.')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppLocalizations.of(context)!.loginError)),
+          );
+        }
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Iniciar Sesión'),
+        title: Text(l10n.login),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -53,25 +57,25 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
+                decoration: InputDecoration(
+                  labelText: l10n.email,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor, ingrese su email';
+                    return l10n.fieldRequired;
                   }
                   return null;
                 },
               ),
               TextFormField(
                 controller: _passwordController,
-                decoration: const InputDecoration(
-                  labelText: 'Contraseña',
+                decoration: InputDecoration(
+                  labelText: l10n.password,
                 ),
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor, ingrese su contraseña';
+                    return l10n.fieldRequired;
                   }
                   return null;
                 },
@@ -79,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _signIn,
-                child: const Text('Ingresar'),
+                child: Text(l10n.enter),
               ),
               TextButton(
                 onPressed: () {
@@ -88,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     MaterialPageRoute(builder: (context) => const SignUpScreen()),
                   );
                 },
-                child: const Text('¿No tienes cuenta? Regístrate'),
+                child: Text(l10n.noAccount),
               )
             ],
           ),

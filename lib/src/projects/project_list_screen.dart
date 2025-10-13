@@ -5,6 +5,7 @@ import 'package:cubicador_pro/src/projects/add_project_screen.dart';
 import 'package:cubicador_pro/src/projects/project_details_screen.dart';
 import 'package:cubicador_pro/src/projects/project_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ProjectListScreen extends StatefulWidget {
   const ProjectListScreen({super.key});
@@ -18,9 +19,10 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mis Proyectos'),
+        title: Text(l10n.myProjects),
         actions: [
           IconButton(
             icon: const Icon(Icons.inventory),
@@ -101,6 +103,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
             ),
           );
         },
+        tooltip: l10n.addProject,
         child: const Icon(Icons.add),
       ),
     );

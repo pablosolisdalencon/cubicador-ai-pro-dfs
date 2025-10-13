@@ -1,0 +1,19 @@
+{
+  "@@locale": "es",
+  "appTitle": "Cubicador Pro",
+  "login": "Iniciar Sesión",
+  "email": "Email",
+  "password": "Contraseña",
+  "enter": "Ingresar",
+  "register": "Registrarse",
+  "noAccount": "¿No tienes cuenta? Regístrate",
+  "myProjects": "Mis Proyectos",
+  "addProject": "Añadir Proyecto",
+  "projectName": "Nombre del Proyecto",
+  "location": "Ubicación",
+  "technicalManager": "Responsable Técnico",
+  "saveProject": "Guardar Proyecto",
+  "fieldRequired": "Campo requerido",
+  "loginError": "Error: Usuario o contraseña incorrectos.",
+  "signupError": "Error: No se pudo crear el usuario."
+}

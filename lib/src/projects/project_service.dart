@@ -3,6 +3,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cubicador_pro/src/models/project_model.dart';
 import 'package:cubicador_pro/src/models/cubication_item_model.dart';
 
+// NOTA DE ARQUITECTURA:
+// Este servicio, y la aplicación en general, se benefician del soporte offline
+// por defecto que ofrece el SDK de Firestore para plataformas móviles.
+// Firestore mantiene un caché local de los datos. Las lecturas primero intentan
+// usar el caché, proporcionando acceso a los datos sin conexión. Las escrituras
+// se encolan y se ejecutan cuando se recupera la conexión.
+// No se requiere código adicional para habilitar este comportamiento en Android/iOS.
+
 class ProjectService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -42,6 +50,11 @@ class ProjectService {
   // Añadir un nuevo proyecto
   Future<void> addProject(Project project) {
     return _getProjectsCollection().add(project);
+  }
+
+  // Actualizar un proyecto existente
+  Future<void> updateProject(String projectId, Project project) {
+    return _getProjectsCollection().doc(projectId).update(project.toFirestore());
   }
 
   // Eliminar un proyecto

@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cubicador_pro/src/models/cubication_item_model.dart';
-import 'package:cubicador_pro/src/models/material_model.dart';
+import 'package:cubicador_pro/src/models/construction_material_model.dart';
 import 'package:cubicador_pro/src/projects/project_service.dart';
 import 'package:flutter/material.dart';
 
 class CubicationResultsScreen extends StatelessWidget {
   final String projectId;
   final String workType;
-  final Material material;
+  final ConstructionMaterial material;
   final double largo;
   final double ancho;
   final double alto;
@@ -53,8 +53,7 @@ class CubicationResultsScreen extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Cubicación guardada en el proyecto.')),
         );
-        // Regresar a la pantalla de detalles del proyecto (que aún no existe)
-        // Por ahora, regresamos dos veces para llegar a la lista de proyectos
+        // Regresar a la pantalla de detalles del proyecto
         int count = 0;
         Navigator.of(context).popUntil((_) => count++ >= 2);
       }

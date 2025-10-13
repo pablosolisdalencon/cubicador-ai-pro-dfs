@@ -1,4 +1,4 @@
-import 'package:cubicador_pro/src/models/material_model.dart';
+import 'package:cubicador_pro/src/models/construction_material_model.dart';
 import 'package:cubicador_pro/src/materials/material_service.dart';
 import 'package:flutter/material.dart';
 
@@ -18,7 +18,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
 
   Future<void> _addMaterial() async {
     if (_formKey.currentState!.validate()) {
-      final newMaterial = Material(
+      final newMaterial = ConstructionMaterial(
         id: '', // Firestore generará el ID
         name: _nameController.text,
         unit: _unitController.text,

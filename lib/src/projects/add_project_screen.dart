@@ -1,3 +1,4 @@
+import 'package:cubicador_pro/src/location/location_service.dart';
 import 'package:cubicador_pro/src/models/project_model.dart';
 import 'package:cubicador_pro/src/projects/project_service.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,9 @@ class _AddProjectScreenState extends State<AddProjectScreen> {
   final _locationController = TextEditingController();
   final _managerController = TextEditingController();
   final ProjectService _projectService = ProjectService();
+  final LocationService _locationService = LocationService();
+
+  bool _isGettingLocation = false;
 
   Future<void> _addProject() async {
     if (_formKey.currentState!.validate()) {
@@ -28,6 +32,26 @@ class _AddProjectScreenState extends State<AddProjectScreen> {
       if (mounted) {
         Navigator.pop(context);
       }
+    }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    setState(() {
+      _isGettingLocation = true;
+    });
+    try {
+      final position = await _locationService.getCurrentPosition();
+      _locationController.text = 'Lat: ${position.latitude.toStringAsFixed(4)}, Lon: ${position.longitude.toStringAsFixed(4)}';
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al obtener la ubicación: ${e.toString()}')),
+        );
+      }
+    } finally {
+      setState(() {
+        _isGettingLocation = false;
+      });
     }
   }
 
@@ -50,7 +74,16 @@ class _AddProjectScreenState extends State<AddProjectScreen> {
               ),
               TextFormField(
                 controller: _locationController,
-                decoration: const InputDecoration(labelText: 'Ubicación'),
+                decoration: InputDecoration(
+                  labelText: 'Ubicación',
+                  suffixIcon: _isGettingLocation
+                      ? const CircularProgressIndicator()
+                      : IconButton(
+                          icon: const Icon(Icons.my_location),
+                          onPressed: _getCurrentLocation,
+                          tooltip: 'Usar mi ubicación actual',
+                        ),
+                ),
                 validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
               ),
               TextFormField(

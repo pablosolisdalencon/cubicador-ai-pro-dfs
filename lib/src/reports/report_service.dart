@@ -4,13 +4,15 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:cubicador_pro/src/models/cubication_item_model.dart';
 
 class ReportService {
-  Future<Uint8List> generatePdfReport(String projectName, List<CubicationItem> items) async {
+  Future<Uint8List> generatePdfReport(
+    String projectName,
+    List<CubicationItem> items, {
+    Uint8List? signatureImage,
+  }) async {
     final pdf = pw.Document();
 
-    // Método para calcular el costo total del proyecto
+    // ... (lógica de cálculo de totales se mantiene igual)
     final double totalCost = items.fold(0.0, (sum, item) => sum + item.totalCost);
-
-    // Método para agrupar y sumar las cantidades por material
     final Map<String, double> materialTotals = {};
     for (var item in items) {
       materialTotals.update(
@@ -25,21 +27,17 @@ class ReportService {
         pageFormat: PdfPageFormat.a4,
         build: (pw.Context context) {
           return [
-            // Título
+            // ... (secciones de título, resumen y desglose se mantienen igual)
             pw.Header(
               level: 0,
               child: pw.Text('Reporte de Cubicación: $projectName', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
             ),
-
-            // Resumen General
             pw.Header(level: 1, text: 'Resumen General'),
             pw.Paragraph(
               text: 'Costo Total Estimado: \$${totalCost.toStringAsFixed(2)}',
               style: pw.TextStyle(fontSize: 18, color: PdfColors.green),
             ),
             pw.SizedBox(height: 20),
-
-            // Desglose por Material
             pw.Header(level: 1, text: 'Desglose por Material'),
             pw.Table.fromTextArray(
               context: context,
@@ -50,8 +48,6 @@ class ReportService {
               }).toList(),
             ),
             pw.SizedBox(height: 20),
-
-            // Lista detallada de ítems
             pw.Header(level: 1, text: 'Detalle de Ítems'),
             ...items.map((item) {
               return pw.Container(
@@ -68,6 +64,13 @@ class ReportService {
                 )
               );
             }).toList(),
+
+            // Nueva sección para la firma
+            if (signatureImage != null) ...[
+              pw.SizedBox(height: 40),
+              pw.Header(level: 1, text: 'Firma de Conformidad'),
+              pw.Image(pw.MemoryImage(signatureImage), width: 150, alignment: pw.Alignment.centerLeft),
+            ]
           ];
         },
       ),

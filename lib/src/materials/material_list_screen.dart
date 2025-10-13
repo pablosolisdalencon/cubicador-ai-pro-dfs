@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cubicador_pro/src/models/material_model.dart';
+import 'package:cubicador_pro/src/models/construction_material_model.dart';
 import 'package:cubicador_pro/src/materials/add_material_screen.dart';
 import 'package:cubicador_pro/src/materials/material_service.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +20,7 @@ class _MaterialListScreenState extends State<MaterialListScreen> {
       appBar: AppBar(
         title: const Text('Catálogo de Materiales'),
       ),
-      body: StreamBuilder<QuerySnapshot<Material>>(
+      body: StreamBuilder<QuerySnapshot<ConstructionMaterial>>(
         stream: _materialService.getMaterials(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
