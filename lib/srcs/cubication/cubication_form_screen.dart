@@ -1,6 +1,6 @@
 import 'package:cubicador_pro/src/cubication/cubication_results_screen.dart';
 import 'package:cubicador_pro/src/materials/material_service.dart';
-import 'package:cubicador_pro/src/models/material_model.dart';
+import 'package:cubicador_pro/src/models/construction_material_model.dart';
 import 'package:flutter/material.dart';
 
 class CubicationFormScreen extends StatefulWidget {
@@ -16,8 +16,8 @@ class _CubicationFormScreenState extends State<CubicationFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _materialService = MaterialService();
 
-  List<Material> _materials = [];
-  Material? _selectedMaterial;
+  List<ConstructionMaterial> _materials = [];
+  ConstructionMaterial? _selectedMaterial;
   String? _selectedWorkType;
   final _workTypes = ['Muro', 'Losa', 'Columna', 'Cimentación'];
 
@@ -67,11 +67,11 @@ class _CubicationFormScreenState extends State<CubicationFormScreen> {
                 },
                 validator: (value) => value == null ? 'Campo requerido' : null,
               ),
-              DropdownButtonFormField<Material>(
+              DropdownButtonFormField<ConstructionMaterial>(
                 value: _selectedMaterial,
                 hint: const Text('Seleccionar Material'),
-                items: _materials.map((Material material) {
-                  return DropdownMenuItem<Material>(
+                items: _materials.map((ConstructionMaterial material) {
+                  return DropdownMenuItem<ConstructionMaterial>(
                     value: material,
                     child: Text(material.name),
                   );
@@ -112,7 +112,7 @@ class _CubicationFormScreenState extends State<CubicationFormScreen> {
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     final String workType = _selectedWorkType!;
-                    final Material material = _selectedMaterial!;
+                    final ConstructionMaterial material = _selectedMaterial!;
                     final double largo = double.parse(_largoController.text);
                     final double ancho = double.parse(_anchoController.text);
                     final double alto = double.parse(_altoController.text);

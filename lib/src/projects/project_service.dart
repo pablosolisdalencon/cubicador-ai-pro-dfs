@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cubicador_pro/src/models/project_model.dart';
+import 'package:cubicador_pro/src/models/cubication_item_model.dart';
 
 class ProjectService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -22,6 +23,17 @@ class ProjectService {
         );
   }
 
+  // Obtener la colección de items para un proyecto específico
+  CollectionReference<CubicationItem> _getProjectItemsCollection(String projectId) {
+    return _getProjectsCollection()
+        .doc(projectId)
+        .collection('items')
+        .withConverter<CubicationItem>(
+          fromFirestore: (snapshots, _) => CubicationItem.fromFirestore(snapshots.data()!, snapshots.id),
+          toFirestore: (item, _) => item.toFirestore(),
+        );
+  }
+
   // Stream para obtener los proyectos en tiempo real
   Stream<QuerySnapshot<Project>> getProjects() {
     return _getProjectsCollection().snapshots();
@@ -35,5 +47,15 @@ class ProjectService {
   // Eliminar un proyecto
   Future<void> deleteProject(String projectId) {
     return _getProjectsCollection().doc(projectId).delete();
+  }
+
+  // Stream para obtener los items de un proyecto
+  Stream<QuerySnapshot<CubicationItem>> getProjectItems(String projectId) {
+    return _getProjectItemsCollection(projectId).orderBy('createdAt', descending: true).snapshots();
+  }
+
+  // Añadir un nuevo item de cubicación a un proyecto
+  Future<void> addCubicationItem(String projectId, CubicationItem item) {
+    return _getProjectItemsCollection(projectId).add(item);
   }
 }
