@@ -16,26 +16,36 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
+  bool _isLoading = false;
 
   Future<void> _signIn() async {
     if (_formKey.currentState!.validate()) {
-      final userCredential = await _authService.signInWithEmailAndPassword(
-        _emailController.text,
-        _passwordController.text,
-      );
-
-      if (userCredential != null && mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const ProjectListScreen(),
-          ),
+      setState(() => _isLoading = true);
+      try {
+        await _authService.signInWithEmailAndPassword(
+          _emailController.text,
+          _passwordController.text,
         );
-      } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.loginError)),
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const ProjectListScreen()),
           );
+        }
+      } on AuthException catch (e) {
+        if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
+          String errorMessage = l10n.loginError;
+          if (e.code == 'wrong-password' || e.code == 'user-not-found') {
+            errorMessage = l10n.wrongPassword;
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorMessage)),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
         }
       }
     }
@@ -44,11 +54,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.login),
-      ),
+      appBar: AppBar(title: Text(l10n.login)),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -57,36 +64,26 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               TextFormField(
                 controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: l10n.email,
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return l10n.fieldRequired;
-                  }
-                  return null;
-                },
+                decoration: InputDecoration(labelText: l10n.email),
+                validator: (value) => value!.isEmpty ? l10n.fieldRequired : null,
+                enabled: !_isLoading,
               ),
               TextFormField(
                 controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: l10n.password,
-                ),
+                decoration: InputDecoration(labelText: l10n.password),
                 obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return l10n.fieldRequired;
-                  }
-                  return null;
-                },
+                validator: (value) => value!.isEmpty ? l10n.fieldRequired : null,
+                enabled: !_isLoading,
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _signIn,
-                child: Text(l10n.enter),
+                onPressed: _isLoading ? null : _signIn,
+                child: _isLoading
+                    ? const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white))
+                    : Text(l10n.enter),
               ),
               TextButton(
-                onPressed: () {
+                onPressed: _isLoading ? null : () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const SignUpScreen()),

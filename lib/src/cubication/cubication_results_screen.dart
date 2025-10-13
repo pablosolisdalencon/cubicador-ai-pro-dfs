@@ -27,13 +27,34 @@ class CubicationResultsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ProjectService projectService = ProjectService();
-    final double volumenUnitario = largo * ancho * alto;
-    final double volumenTotal = volumenUnitario * unidades;
-    final double costoTotal = volumenTotal * material.price;
+
+    // --- Lógica de Cálculo Avanzado ---
+    double primaryMeasure = 0;
+    double totalQuantity = 0;
+    String measureLabel = '';
+
+    if (material.type == MaterialType.volume) {
+      primaryMeasure = largo * ancho * alto;
+      totalQuantity = primaryMeasure * unidades;
+      measureLabel = 'Volumen Total';
+    } else if (material.type == MaterialType.area) {
+      primaryMeasure = largo * alto; // Asumimos que para área, lo importante es largo x alto (ej. un muro)
+      totalQuantity = primaryMeasure * unidades;
+      measureLabel = 'Área Total';
+      if (material.performance > 0) {
+        totalQuantity = totalQuantity * material.performance;
+        measureLabel = 'Cantidad Total Estimada';
+      }
+    } else { // MaterialType.unit
+      totalQuantity = unidades.toDouble();
+      measureLabel = 'Cantidad Total';
+    }
+
+    final double costoTotal = totalQuantity * material.price;
 
     Future<void> _saveCubication() async {
       final newItem = CubicationItem(
-        id: '', // Firestore will generate
+        id: '',
         workType: workType,
         materialName: material.name,
         materialUnit: material.unit,
@@ -42,18 +63,15 @@ class CubicationResultsScreen extends StatelessWidget {
         ancho: ancho,
         alto: alto,
         unidades: unidades,
-        totalVolume: volumenTotal,
+        totalVolume: totalQuantity, // Guardamos la cantidad calculada, no necesariamente el volumen
         totalCost: costoTotal,
         createdAt: Timestamp.now(),
       );
-
       await projectService.addCubicationItem(projectId, newItem);
-
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Cubicación guardada en el proyecto.')),
         );
-        // Regresar a la pantalla de detalles del proyecto
         int count = 0;
         Navigator.of(context).popUntil((_) => count++ >= 2);
       }
@@ -78,9 +96,8 @@ class CubicationResultsScreen extends StatelessWidget {
             const SizedBox(height: 20),
             const Divider(),
             const SizedBox(height: 20),
-            Text('Volumen por Unidad: ${volumenUnitario.toStringAsFixed(2)} m³'),
             Text(
-              'Cantidad Total de Material: ${volumenTotal.toStringAsFixed(2)} ${material.unit}',
+              '$measureLabel: ${totalQuantity.toStringAsFixed(2)} ${material.unit}',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             Text(
@@ -94,10 +111,6 @@ class CubicationResultsScreen extends StatelessWidget {
                 icon: const Icon(Icons.save),
                 label: const Text('Guardar en el Proyecto'),
                 onPressed: _saveCubication,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
               ),
             ),
           ],

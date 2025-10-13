@@ -15,5 +15,8 @@
   "saveProject": "Save Project",
   "fieldRequired": "Field required",
   "loginError": "Error: Incorrect username or password.",
-  "signupError": "Error: Could not create user."
+  "signupError": "Error: Could not create user.",
+  "emailInUse": "The email address is already in use by another account.",
+  "weakPassword": "The password provided is too weak.",
+  "wrongPassword": "The password is not correct."
 }

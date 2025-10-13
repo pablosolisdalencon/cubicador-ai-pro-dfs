@@ -29,9 +29,7 @@ class ProjectDetailsScreen extends StatelessWidget {
             icon: const Icon(Icons.edit),
             tooltip: 'Editar Proyecto',
             onPressed: () {
-              // Necesitamos el objeto Project completo para editarlo
-              // Lo ideal sería obtenerlo de Firestore o pasarlo desde la pantalla anterior
-              // Por simplicidad, crearemos uno aquí (en una app real esto sería diferente)
+              // Lógica para obtener el proyecto y navegar a la pantalla de edición
               projectService.getProjects().first.then((snapshot) {
                 final projectDoc = snapshot.docs.firstWhere((doc) => doc.id == projectId);
                 final project = projectDoc.data();
@@ -79,21 +77,42 @@ class ProjectDetailsScreen extends StatelessWidget {
             return const Center(child: Text('Este proyecto no tiene cubicaciones. ¡Añade una!'));
           }
 
-          final items = snapshot.data!.docs;
+          final itemDocs = snapshot.data!.docs;
 
           return ListView.builder(
-            itemCount: items.length,
+            itemCount: itemDocs.length,
             itemBuilder: (context, index) {
-              final item = items[index].data();
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                child: ListTile(
-                  title: Text('${item.workType} - ${item.materialName}'),
-                  subtitle: Text(
-                      'Volumen: ${item.totalVolume.toStringAsFixed(2)} ${item.materialUnit} | Costo: \$${item.totalCost.toStringAsFixed(2)}'),
-                  trailing: Text(
-                    '${item.createdAt.toDate().day}/${item.createdAt.toDate().month}/${item.createdAt.toDate().year}',
-                    style: Theme.of(context).textTheme.bodySmall,
+              final item = itemDocs[index].data();
+              final itemId = itemDocs[index].id;
+
+              return Dismissible(
+                key: Key(itemId),
+                direction: DismissDirection.endToStart,
+                onDismissed: (_) {
+                  projectService.deleteCubicationItem(projectId, itemId);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Ítem eliminado')),
+                  );
+                },
+                background: Container(
+                  color: Colors.red,
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: const Icon(Icons.delete, color: Colors.white),
+                ),
+                child: Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: ListTile(
+                    title: Text('${item.workType} - ${item.materialName}'),
+                    subtitle: Text(
+                        'Volumen: ${item.totalVolume.toStringAsFixed(2)} ${item.materialUnit} | Costo: \$${item.totalCost.toStringAsFixed(2)}'),
+                    trailing: Text(
+                      '${item.createdAt.toDate().day}/${item.createdAt.toDate().month}/${item.createdAt.toDate().year}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    onTap: () {
+                      // Navegar a la pantalla de edición del ítem (futuro)
+                    },
                   ),
                 ),
               );

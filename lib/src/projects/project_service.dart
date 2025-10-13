@@ -3,72 +3,53 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cubicador_pro/src/models/project_model.dart';
 import 'package:cubicador_pro/src/models/cubication_item_model.dart';
 
-// NOTA DE ARQUITECTURA:
-// Este servicio, y la aplicación en general, se benefician del soporte offline
-// por defecto que ofrece el SDK de Firestore para plataformas móviles.
-// Firestore mantiene un caché local de los datos. Las lecturas primero intentan
-// usar el caché, proporcionando acceso a los datos sin conexión. Las escrituras
-// se encolan y se ejecutan cuando se recupera la conexión.
-// No se requiere código adicional para habilitar este comportamiento en Android/iOS.
+// NOTA DE ARQUITECTURA: ... (comentario de offline se mantiene)
 
 class ProjectService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Obtener la colección de proyectos para el usuario actual
+  // ... (métodos de Proyectos se mantienen igual)
   CollectionReference<Project> _getProjectsCollection() {
     final User? user = _auth.currentUser;
-    if (user == null) {
-      throw Exception('Usuario no autenticado.');
-    }
+    if (user == null) throw Exception('Usuario no autenticado.');
     return _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('projects')
+        .collection('users').doc(user.uid).collection('projects')
         .withConverter<Project>(
           fromFirestore: (snapshots, _) => Project.fromFirestore(snapshots.data()!, snapshots.id),
           toFirestore: (project, _) => project.toFirestore(),
         );
   }
+  Stream<QuerySnapshot<Project>> getProjects() => _getProjectsCollection().snapshots();
+  Future<void> addProject(Project project) => _getProjectsCollection().add(project);
+  Future<void> updateProject(String projectId, Project project) => _getProjectsCollection().doc(projectId).update(project.toFirestore());
+  Future<void> deleteProject(String projectId) => _getProjectsCollection().doc(projectId).delete();
 
-  // Obtener la colección de items para un proyecto específico
+  // --- Métodos para Items de Cubicación ---
+
   CollectionReference<CubicationItem> _getProjectItemsCollection(String projectId) {
-    return _getProjectsCollection()
-        .doc(projectId)
-        .collection('items')
+    return _getProjectsCollection().doc(projectId).collection('items')
         .withConverter<CubicationItem>(
           fromFirestore: (snapshots, _) => CubicationItem.fromFirestore(snapshots.data()!, snapshots.id),
           toFirestore: (item, _) => item.toFirestore(),
         );
   }
 
-  // Stream para obtener los proyectos en tiempo real
-  Stream<QuerySnapshot<Project>> getProjects() {
-    return _getProjectsCollection().snapshots();
-  }
-
-  // Añadir un nuevo proyecto
-  Future<void> addProject(Project project) {
-    return _getProjectsCollection().add(project);
-  }
-
-  // Actualizar un proyecto existente
-  Future<void> updateProject(String projectId, Project project) {
-    return _getProjectsCollection().doc(projectId).update(project.toFirestore());
-  }
-
-  // Eliminar un proyecto
-  Future<void> deleteProject(String projectId) {
-    return _getProjectsCollection().doc(projectId).delete();
-  }
-
-  // Stream para obtener los items de un proyecto
   Stream<QuerySnapshot<CubicationItem>> getProjectItems(String projectId) {
     return _getProjectItemsCollection(projectId).orderBy('createdAt', descending: true).snapshots();
   }
 
-  // Añadir un nuevo item de cubicación a un proyecto
   Future<void> addCubicationItem(String projectId, CubicationItem item) {
     return _getProjectItemsCollection(projectId).add(item);
+  }
+
+  // NUEVO: Actualizar un item de cubicación
+  Future<void> updateCubicationItem(String projectId, String itemId, CubicationItem item) {
+    return _getProjectItemsCollection(projectId).doc(itemId).update(item.toFirestore());
+  }
+
+  // NUEVO: Eliminar un item de cubicación
+  Future<void> deleteCubicationItem(String projectId, String itemId) {
+    return _getProjectItemsCollection(projectId).doc(itemId).delete();
   }
 }

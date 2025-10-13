@@ -15,26 +15,41 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
+  bool _isLoading = false;
 
   Future<void> _signUp() async {
     if (_formKey.currentState!.validate()) {
-      final userCredential = await _authService.createUserWithEmailAndPassword(
-        _emailController.text,
-        _passwordController.text,
-      );
-
-      if (userCredential != null && mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const ProjectListScreen(),
-          ),
+      setState(() => _isLoading = true);
+      try {
+        await _authService.createUserWithEmailAndPassword(
+          _emailController.text,
+          _passwordController.text,
         );
-      } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.signupError)),
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const ProjectListScreen()),
           );
+        }
+      } on AuthException catch (e) {
+        if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
+          String errorMessage = l10n.signupError;
+          switch (e.code) {
+            case 'email-already-in-use':
+              errorMessage = l10n.emailInUse;
+              break;
+            case 'weak-password':
+              errorMessage = l10n.weakPassword;
+              break;
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorMessage)),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
         }
       }
     }
@@ -57,17 +72,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 controller: _emailController,
                 decoration: InputDecoration(labelText: l10n.email),
                 validator: (value) => value!.isEmpty ? l10n.fieldRequired : null,
+                enabled: !_isLoading,
               ),
               TextFormField(
                 controller: _passwordController,
                 decoration: InputDecoration(labelText: l10n.password),
                 obscureText: true,
                 validator: (value) => value!.isEmpty ? l10n.fieldRequired : null,
+                enabled: !_isLoading,
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _signUp,
-                child: Text(l10n.register),
+                onPressed: _isLoading ? null : _signUp,
+                child: _isLoading
+                    ? const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white))
+                    : Text(l10n.register),
               ),
             ],
           ),

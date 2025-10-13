@@ -11,78 +11,78 @@ class ReportScreen extends StatefulWidget {
   final String projectName;
   final List<CubicationItem> items;
 
-  const ReportScreen({
-    super.key,
-    required this.projectName,
-    required this.items,
-  });
+  const ReportScreen({super.key, required this.projectName, required this.items});
 
   @override
   State<ReportScreen> createState() => _ReportScreenState();
 }
 
 class _ReportScreenState extends State<ReportScreen> {
-  final SignatureController _controller = SignatureController(
-    penStrokeWidth: 5,
-    penColor: Colors.black,
-    exportBackgroundColor: Colors.white,
-  );
-
+  final SignatureController _controller = SignatureController(penStrokeWidth: 5, penColor: Colors.black);
   Uint8List? _signatureImage;
 
-  double get _totalCost {
-    return widget.items.fold(0.0, (sum, item) => sum + item.totalCost);
-  }
+  double get _totalCost => widget.items.fold(0.0, (sum, item) => sum + item.totalCost);
 
   Map<String, double> get _materialTotals {
     final Map<String, double> totals = {};
     for (var item in widget.items) {
-      totals.update(
-        '${item.materialName} (${item.materialUnit})',
-        (value) => value + item.totalVolume,
-        ifAbsent: () => item.totalVolume,
-      );
+      totals.update('${item.materialName} (${item.materialUnit})', (value) => value + item.totalVolume, ifAbsent: () => item.totalVolume);
     }
     return totals;
   }
 
-  Future<void> _exportAndShareReport(BuildContext context) async {
+  Future<void> _exportAndShareReport({required String format}) async {
     final reportService = ReportService();
-    final pdfBytes = await reportService.generatePdfReport(
-      widget.projectName,
-      widget.items,
-      signatureImage: _signatureImage,
-    );
+    String fileName;
+    List<int>? fileBytes;
+
+    if (format == 'pdf') {
+      fileName = 'reporte_${widget.projectName}.pdf';
+      fileBytes = await reportService.generatePdfReport(widget.projectName, widget.items, signatureImage: _signatureImage);
+    } else if (format == 'excel') {
+      fileName = 'reporte_${widget.projectName}.xlsx';
+      fileBytes = await reportService.generateExcelReport(widget.projectName, widget.items);
+    } else {
+      return;
+    }
+
+    if (fileBytes == null) return;
 
     final tempDir = await getTemporaryDirectory();
-    final file = await File('${tempDir.path}/reporte_${widget.projectName}.pdf').writeAsBytes(pdfBytes);
+    final file = await File('${tempDir.path}/$fileName').writeAsBytes(fileBytes);
 
-    if (context.mounted) {
-       await Share.shareXFiles(
-        [XFile(file.path)],
-        text: 'Reporte de Cubicación para el proyecto: ${widget.projectName}',
-      );
+    if (mounted) {
+      await Share.shareXFiles([XFile(file.path)], text: 'Reporte de Cubicación para: ${widget.projectName}');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final materialTotals = _materialTotals;
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Reporte: ${widget.projectName}'),
         actions: [
-          IconButton(
+          PopupMenuButton<String>(
+            onSelected: (value) => _exportAndShareReport(format: value),
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'pdf',
+                child: Text('Exportar a PDF'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'excel',
+                child: Text('Exportar a Excel'),
+              ),
+            ],
             icon: const Icon(Icons.share),
             tooltip: 'Exportar Reporte',
-            onPressed: () => _exportAndShareReport(context),
           ),
         ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
+          // ... (el resto de la UI se mantiene igual)
           Card(
             elevation: 4,
             child: Padding(
@@ -109,11 +109,11 @@ class _ReportScreenState extends State<ReportScreen> {
             child: ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: materialTotals.length,
+              itemCount: _materialTotals.length,
               separatorBuilder: (_, __) => const Divider(),
               itemBuilder: (context, index) {
-                final materialName = materialTotals.keys.elementAt(index);
-                final totalAmount = materialTotals.values.elementAt(index);
+                final materialName = _materialTotals.keys.elementAt(index);
+                final totalAmount = _materialTotals.values.elementAt(index);
                 return ListTile(
                   title: Text(materialName),
                   trailing: Text(totalAmount.toStringAsFixed(2), style: Theme.of(context).textTheme.bodyLarge),
@@ -129,10 +129,7 @@ class _ReportScreenState extends State<ReportScreen> {
               children: [
                 const Text('Firma guardada:'),
                 Image.memory(_signatureImage!),
-                TextButton(
-                  onPressed: () => setState(() => _signatureImage = null),
-                  child: const Text('Firmar de nuevo'),
-                )
+                TextButton(onPressed: () => setState(() => _signatureImage = null), child: const Text('Firmar de nuevo'))
               ],
             )
           else
@@ -140,35 +137,19 @@ class _ReportScreenState extends State<ReportScreen> {
               elevation: 2,
               child: Column(
                 children: [
-                  Signature(
-                    controller: _controller,
-                    height: 200,
-                    backgroundColor: Colors.grey[200]!,
-                  ),
+                  Signature(controller: _controller, height: 200, backgroundColor: Colors.grey[200]!),
                   Container(
                     color: Colors.grey[300],
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.check),
-                          color: Colors.green,
-                          onPressed: () async {
-                            if (_controller.isNotEmpty) {
-                              final image = await _controller.toPngBytes();
-                              setState(() => _signatureImage = image);
-                            }
-                          },
-                          tooltip: 'Confirmar Firma',
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.clear),
-                          color: Colors.red,
-                          onPressed: () {
-                            _controller.clear();
-                          },
-                          tooltip: 'Limpiar',
-                        ),
+                        IconButton(icon: const Icon(Icons.check), color: Colors.green, onPressed: () async {
+                          if (_controller.isNotEmpty) {
+                            final image = await _controller.toPngBytes();
+                            setState(() => _signatureImage = image);
+                          }
+                        }, tooltip: 'Confirmar Firma'),
+                        IconButton(icon: const Icon(Icons.clear), color: Colors.red, onPressed: () => _controller.clear(), tooltip: 'Limpiar'),
                       ],
                     ),
                   )

@@ -15,5 +15,8 @@
   "saveProject": "Guardar Proyecto",
   "fieldRequired": "Campo requerido",
   "loginError": "Error: Usuario o contraseña incorrectos.",
-  "signupError": "Error: No se pudo crear el usuario."
+  "signupError": "Error: No se pudo crear el usuario.",
+  "emailInUse": "El correo electrónico ya está en uso por otra cuenta.",
+  "weakPassword": "La contraseña es demasiado débil.",
+  "wrongPassword": "La contraseña es incorrecta."
 }

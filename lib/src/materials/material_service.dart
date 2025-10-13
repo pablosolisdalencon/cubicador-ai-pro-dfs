@@ -6,7 +6,6 @@ class MaterialService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Obtener la colección de materiales para el usuario actual
   CollectionReference<ConstructionMaterial> _getMaterialsCollection() {
     final User? user = _auth.currentUser;
     if (user == null) {
@@ -22,22 +21,18 @@ class MaterialService {
         );
   }
 
-  // Stream para obtener los materiales en tiempo real
   Stream<QuerySnapshot<ConstructionMaterial>> getMaterials() {
     return _getMaterialsCollection().snapshots();
   }
 
-  // Añadir un nuevo material
   Future<void> addMaterial(ConstructionMaterial material) {
     return _getMaterialsCollection().add(material);
   }
 
-  // Actualizar un material existente
   Future<void> updateMaterial(String materialId, ConstructionMaterial material) {
     return _getMaterialsCollection().doc(materialId).update(material.toFirestore());
   }
 
-  // Eliminar un material
   Future<void> deleteMaterial(String materialId) {
     return _getMaterialsCollection().doc(materialId).delete();
   }

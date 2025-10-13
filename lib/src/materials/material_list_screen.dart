@@ -73,6 +73,7 @@ class _MaterialListScreenState extends State<MaterialListScreen> {
           );
         },
         child: const Icon(Icons.add),
+        tooltip: 'Añadir Material',
       ),
     );
   }
