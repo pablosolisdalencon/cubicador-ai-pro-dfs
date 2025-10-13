@@ -1,6 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cubicador_pro/src/cubication/cubication_form_screen.dart';
-import 'package:flutter/material.dart';
 import 'package:cubicador_pro/src/models/project_model.dart';
+import 'package:cubicador_pro/src/projects/add_project_screen.dart';
+import 'package:cubicador_pro/src/projects/project_service.dart';
+import 'package:flutter/material.dart';
 
 class ProjectListScreen extends StatefulWidget {
   const ProjectListScreen({super.key});
@@ -10,20 +13,7 @@ class ProjectListScreen extends StatefulWidget {
 }
 
 class _ProjectListScreenState extends State<ProjectListScreen> {
-  final List<Project> _projects = [
-    Project(
-      id: '1',
-      name: 'Casa Unifamiliar',
-      location: 'Ciudad de México',
-      technicalManager: 'Juan Pérez',
-    ),
-    Project(
-      id: '2',
-      name: 'Edificio de Oficinas',
-      location: 'Monterrey',
-      technicalManager: 'María García',
-    ),
-  ];
+  final ProjectService _projectService = ProjectService();
 
   @override
   Widget build(BuildContext context) {
@@ -31,15 +21,53 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
       appBar: AppBar(
         title: const Text('Mis Proyectos'),
       ),
-      body: ListView.builder(
-        itemCount: _projects.length,
-        itemBuilder: (context, index) {
-          final project = _projects[index];
-          return ListTile(
-            title: Text(project.name),
-            subtitle: Text(project.location),
-            onTap: () {
-              // Navegar a los detalles del proyecto
+      body: StreamBuilder<QuerySnapshot<Project>>(
+        stream: _projectService.getProjects(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return const Center(child: Text('Error al cargar los proyectos.'));
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('No tienes proyectos. ¡Añade uno!'));
+          }
+
+          final projects = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: projects.length,
+            itemBuilder: (context, index) {
+              final project = projects[index].data();
+              return Dismissible(
+                key: Key(project.id),
+                direction: DismissDirection.endToStart,
+                onDismissed: (_) {
+                  _projectService.deleteProject(project.id);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${project.name} eliminado')),
+                  );
+                },
+                background: Container(
+                  color: Colors.red,
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: const Icon(Icons.delete, color: Colors.white),
+                ),
+                child: ListTile(
+                  title: Text(project.name),
+                  subtitle: Text(project.location),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CubicationFormScreen(),
+                      ),
+                    );
+                  },
+                ),
+              );
             },
           );
         },
@@ -49,7 +77,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const CubicationFormScreen(),
+              builder: (context) => const AddProjectScreen(),
             ),
           );
         },

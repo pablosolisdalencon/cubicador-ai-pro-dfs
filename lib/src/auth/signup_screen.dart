@@ -1,24 +1,23 @@
 import 'package:cubicador_pro/src/auth/auth_service.dart';
-import 'package:cubicador_pro/src/auth/signup_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cubicador_pro/src/projects/project_list_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
 
-  Future<void> _signIn() async {
+  Future<void> _signUp() async {
     if (_formKey.currentState!.validate()) {
-      final userCredential = await _authService.signInWithEmailAndPassword(
+      final userCredential = await _authService.createUserWithEmailAndPassword(
         _emailController.text,
         _passwordController.text,
       );
@@ -33,7 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         // Mostrar un error
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error: Usuario o contraseña incorrectos.')),
+          const SnackBar(content: Text('Error: No se pudo crear el usuario.')),
         );
       }
     }
@@ -43,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Iniciar Sesión'),
+        title: const Text('Registrarse'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -58,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor, ingrese su email';
+                    return 'Por favor, ingrese un email';
                   }
                   return null;
                 },
@@ -71,25 +70,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor, ingrese su contraseña';
+                    return 'Por favor, ingrese una contraseña';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _signIn,
-                child: const Text('Ingresar'),
+                onPressed: _signUp,
+                child: const Text('Registrarse'),
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SignUpScreen()),
-                  );
-                },
-                child: const Text('¿No tienes cuenta? Regístrate'),
-              )
             ],
           ),
         ),
