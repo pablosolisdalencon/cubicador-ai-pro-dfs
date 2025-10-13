@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-// TODO Implement this library.
-=======
 import 'package:cubicador_pro/src/auth/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -34,4 +31,3 @@ class AuthWrapper extends StatelessWidget {
     );
   }
 }
->>>>>>> 4f593d4d59649dfd0a96028dad812373e9b449cd
