@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const passport = require('passport');
 const users = require('./routes/api/users');
+const projects = require('./routes/api/projects');
 require('dotenv').config();
 
 const app = express();
@@ -26,6 +27,7 @@ mongoose
 
 // Use Routes
 app.use('/api/users', users);
+app.use('/api/projects', projects);
 
 // Google Auth routes
 app.get(
