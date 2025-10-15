@@ -1,50 +1,51 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { GoogleLogin } from '@react-oauth/google';
+import { useAuth } from '../AuthContext';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
+  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
+  const handleSuccess = async (credentialResponse) => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const res = await fetch('http://localhost:5001/api/auth/google', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token: credentialResponse.credential }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Backend authentication failed');
+      }
+
+      const { token, user } = await res.json();
+
+      // Update the auth state with both user and token
+      login(user, token);
+
       navigate('/dashboard');
     } catch (error) {
-      setError(error.message);
+      console.error('Login Error:', error);
+      alert('Login Failed. Please try again.');
     }
+  };
+
+  const handleError = () => {
+    console.log('Login Failed');
+    alert('Login Failed. Please try again.');
   };
 
   return (
     <div>
       <h2>Login</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Email:</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit">Login</button>
-      </form>
+      <p>Please log in with your Google account to continue.</p>
+      <GoogleLogin
+        onSuccess={handleSuccess}
+        onError={handleError}
+      />
     </div>
   );
 };

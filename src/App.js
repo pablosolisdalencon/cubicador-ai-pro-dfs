@@ -1,21 +1,20 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Project from './components/Project';
 import NotFound from './components/NotFound';
-import PrivateRoute from './components/PrivateRoute';
 import { useAuth } from './AuthContext';
-import { auth } from './firebase';
-import { signOut } from 'firebase/auth';
 import './App.css';
 
-function App() {
+// A simple PrivateRoute component
+const PrivateRoute = ({ children }) => {
   const { currentUser } = useAuth();
+  return currentUser ? children : <Navigate to="/login" />;
+};
 
-  const handleLogout = () => {
-    signOut(auth);
-  };
+function App() {
+  const { currentUser, logout } = useAuth();
 
   return (
     <Router>
@@ -26,7 +25,7 @@ function App() {
             {currentUser ? (
               <>
                 <Link to="/dashboard">Dashboard</Link>
-                <button onClick={handleLogout}>Logout</button>
+                <button onClick={logout}>Logout</button>
               </>
             ) : (
               <Link to="/login">Login</Link>

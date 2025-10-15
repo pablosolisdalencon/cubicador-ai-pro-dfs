@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { useAuth } from '../AuthContext';
 
 const Project = () => {
   const { id } = useParams();
+  const { token } = useAuth();
   const [project, setProject] = useState(null);
   const [length, setLength] = useState('');
   const [width, setWidth] = useState('');
@@ -12,19 +12,29 @@ const Project = () => {
   const [units, setUnits] = useState(1);
   const [material, setMaterial] = useState('concrete');
   const [volume, setVolume] = useState(0);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const getProject = async () => {
-      const docRef = doc(db, 'projects', id);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setProject(docSnap.data());
-      } else {
-        console.log('No such document!');
+    const fetchProject = async () => {
+      if (token) {
+        try {
+          const res = await fetch(`http://localhost:5001/api/projects/${id}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+          if (!res.ok) {
+            throw new Error('Failed to fetch project');
+          }
+          const data = await res.json();
+          setProject(data);
+        } catch (err) {
+          setError(err.message);
+        }
       }
     };
-    getProject();
-  }, [id]);
+    fetchProject();
+  }, [id, token]);
 
   useEffect(() => {
     const l = parseFloat(length) || 0;
@@ -33,6 +43,10 @@ const Project = () => {
     const u = parseInt(units) || 0;
     setVolume(l * w * h * u);
   }, [length, width, height, units]);
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   if (!project) {
     return <div>Loading project...</div>;

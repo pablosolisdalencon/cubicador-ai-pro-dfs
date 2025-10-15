@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebase';
-import { collection, addDoc, query, where, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '../AuthContext';
 import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, token } = useAuth();
   const [projects, setProjects] = useState([]);
   const [projectName, setProjectName] = useState('');
   const [projectLocation, setProjectLocation] = useState('');
@@ -13,18 +11,26 @@ const Dashboard = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (currentUser) {
-      const q = query(collection(db, 'projects'), where('uid', '==', currentUser.uid));
-      const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const projectsData = [];
-        querySnapshot.forEach((doc) => {
-          projectsData.push({ ...doc.data(), id: doc.id });
-        });
-        setProjects(projectsData);
-      });
-      return unsubscribe;
-    }
-  }, [currentUser]);
+    const fetchProjects = async () => {
+      if (currentUser && token) {
+        try {
+          const res = await fetch('http://localhost:5001/api/projects', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+          if (!res.ok) {
+            throw new Error('Failed to fetch projects');
+          }
+          const data = await res.json();
+          setProjects(data);
+        } catch (err) {
+          setError(err.message);
+        }
+      }
+    };
+    fetchProjects();
+  }, [currentUser, token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,18 +40,30 @@ const Dashboard = () => {
       return;
     }
     try {
-      await addDoc(collection(db, 'projects'), {
-        name: projectName,
-        location: projectLocation,
-        lead: projectLead,
-        uid: currentUser.uid,
-        createdAt: new Date(),
+      const res = await fetch('http://localhost:5001/api/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: projectName,
+          location: projectLocation,
+          lead: projectLead,
+        }),
       });
+
+      if (!res.ok) {
+        throw new Error('Failed to create project');
+      }
+
+      const newProject = await res.json();
+      setProjects([...projects, newProject]);
       setProjectName('');
       setProjectLocation('');
       setProjectLead('');
-    } catch (error) {
-      setError('Failed to create project. ' + error.message);
+    } catch (err) {
+      setError('Failed to create project. ' + err.message);
     }
   };
 
@@ -95,8 +113,8 @@ const Dashboard = () => {
         {projects.length > 0 ? (
           <ul>
             {projects.map((project) => (
-              <li key={project.id}>
-                <Link to={`/project/${project.id}`}>
+              <li key={project._id}>
+                <Link to={`/project/${project._id}`}>
                   <strong>{project.name}</strong> - {project.location} (Lead: {project.lead})
                 </Link>
               </li>
