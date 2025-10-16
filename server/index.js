@@ -4,6 +4,11 @@ const cors = require('cors');
 const passport = require('passport');
 const users = require('./routes/api/users');
 const projects = require('./routes/api/projects');
+const cubicationItems = require('./routes/api/cubicationItems');
+const supplies = require('./routes/api/supplies');
+const reports = require('./routes/api/reports');
+const uploads = require('./routes/api/uploads');
+const ai = require('./routes/api/ai');
 require('dotenv').config();
 
 const app = express();
@@ -25,9 +30,17 @@ mongoose
   .then(() => console.log('MongoDB Connected'))
   .catch(err => console.log(err));
 
+// Serve static assets from the 'uploads' directory
+app.use('/uploads', express.static('server/uploads'));
+
 // Use Routes
 app.use('/api/users', users);
 app.use('/api/projects', projects);
+app.use('/api/cubicationItems', cubicationItems);
+app.use('/api/supplies', supplies);
+app.use('/api/reports', reports);
+app.use('/api/uploads', uploads);
+app.use('/api/ai', ai);
 
 // Google Auth routes
 app.get(

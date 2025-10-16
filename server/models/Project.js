@@ -11,6 +11,28 @@ const ProjectSchema = new Schema({
     type: String,
     required: true
   },
+  location: {
+    type: String,
+  },
+  responsibleTechnician: {
+    type: Schema.Types.ObjectId,
+    ref: 'users'
+  },
+  designStandard: {
+    type: String,
+  },
+  versionHistory: [{
+    date: {
+      type: Date,
+      default: Date.now
+    },
+    description: {
+      type: String
+    }
+  }],
+  wbs: [{
+    type: String
+  }],
   description: {
     type: String
   },
